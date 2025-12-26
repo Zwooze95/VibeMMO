@@ -15,7 +15,10 @@ export default Arena({
         /**
          * Define your room handlers:
          */
-        gameServer.define('my_room', MyRoom);
+        gameServer.define('my_room', MyRoom)
+            .enableRealtimeListing()
+            // Increase reservation timeout to 30 seconds (default is 3-5 seconds)
+            .filterBy(['any']);
     },
 
     beforeListen: () => {

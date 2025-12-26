@@ -22,7 +22,6 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var leveling_component = $LevelingComponent
 
 func _enter_tree():
-	set_multiplayer_authority(name.to_int())
 	# If I am the authority, set my username from the manager so it syncs to others
 	if is_multiplayer_authority():
 		var manager = get_node("/root/MultiplayerManager")
@@ -30,9 +29,6 @@ func _enter_tree():
 			username = manager.local_username
 
 func _ready():
-	# Ensure authority is set correctly (Spawner might rename after _enter_tree)
-	set_multiplayer_authority(name.to_int())
-	
 	# Update label initially (in case synced before ready)
 	update_nameplate()
 	
@@ -52,20 +48,12 @@ func _ready():
 
 
 func _check_ui_authority():
-	var owner_id = name.to_int()
-	var my_id = multiplayer.get_unique_id()
-	
-	if owner_id != my_id:
+	if not is_multiplayer_authority():
 		if has_node("CanvasLayer"):
 			var ui = get_node("CanvasLayer")
 			ui.visible = false
 			ui.process_mode = Node.PROCESS_MODE_DISABLED
 			ui.queue_free()
-			print("Delayed Delete UI for " + name + " (Owner: " + str(owner_id) + ", Me: " + str(my_id) + ")")
-	else:
-		print("Delayed Kept UI for " + name + " (Owner: " + str(owner_id) + ", Me: " + str(my_id) + ")")
-		
-	print(name + " Ready. Auth: " + str(get_multiplayer_authority()) + " MyPeer: " + str(multiplayer.get_unique_id()) + " Pos: " + str(position))
 
 
 func _on_chat_timeout():
@@ -170,6 +158,10 @@ func _physics_process(delta):
 		animation_player.play("idle")
 
 	move_and_slide()
+	
+	# Send position to server if we moved (and are authority)
+	if velocity.length() > 0:
+		NetworkManager.send_move_binary(position.x, position.z)
 
 @rpc("call_local")
 func swing_weapon():

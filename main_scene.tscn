@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://vtd8bjpnt7m1" path="res://ui/MultiplayerUI.tscn" id="4_multiplayer_ui"]
 [ext_resource type="PackedScene" path="res://EnemyManager.tscn" id="5_manager_scene"]
 [ext_resource type="PackedScene" path="res://ui/ChatUI.tscn" id="6_chat_ui"]
-[ext_resource type="PackedScene" uid="uid://terrain_scene_123" path="res://Terrain.tscn" id="7_terrain"]
+[ext_resource type="PackedScene" path="res://Terrain.tscn" id="7_terrain"]
 
 [node name="MainScene" type="Node3D" unique_id=1504261338]
 script = ExtResource("1_main_script")
@@ -25,6 +25,6 @@ spawn_path = NodePath("../Players")
 transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
 shadow_enabled = true
 
-[node name="Terrain" parent="." instance=ExtResource("7_terrain")]
+[node name="Terrain" parent="." unique_id=1935818163 instance=ExtResource("7_terrain")]
 
 [node name="EnemyManager" parent="." unique_id=1690579957 instance=ExtResource("5_manager_scene")]

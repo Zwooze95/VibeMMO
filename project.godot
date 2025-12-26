@@ -19,6 +19,7 @@ config/tags=PackedStringArray("mmorpg")
 [autoload]
 
 MultiplayerManager="*res://MultiplayerManager.gd"
+NetworkManager="*res://NetworkManager.gd"
 
 [physics]
 

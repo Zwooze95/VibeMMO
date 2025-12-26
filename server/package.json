@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "ts-node index.ts",
+    "simple": "ts-node simple-server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
