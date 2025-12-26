@@ -21,14 +21,17 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var chat_timer = $ChatTimer
 @onready var leveling_component = $LevelingComponent
 
-func _enter_tree():
-	# If I am the authority, set my username from the manager so it syncs to others
-	if is_multiplayer_authority():
-		var manager = get_node("/root/MultiplayerManager")
-		if manager:
-			username = manager.local_username
+var is_local = false # Sätts till true om detta är vår lokala spelare
 
 func _ready():
+	# Lyssna på när vi får vårt ID från servern
+	NetworkManager.on_my_id_received.connect(_on_my_id_received)
+	
+	# Kolla om NetworkManager redan har ett ID (för spelare som spawnar sent)
+	var my_id = NetworkManager.get_my_id()
+	if my_id > 0:
+		_on_my_id_received(my_id)
+	
 	# Update label initially (in case synced before ready)
 	update_nameplate()
 	
@@ -40,15 +43,23 @@ func _ready():
 		leveling_component.leveled_up.connect(_on_leveled_up)
 		leveling_component.level_changed.connect(_on_level_changed)
 	
-	# Only current player's camera is active
-	camera.current = is_multiplayer_authority()
-	
 	# Delay UI check to avoid race conditions
 	get_tree().create_timer(0.1).timeout.connect(_check_ui_authority)
 
+func _on_my_id_received(my_id: int):
+	# Nu vet vi vårt ID, kolla om detta är vår lokala spelare
+	var player_id = int(name) # name är satt till ID i MainScene
+	is_local = (player_id == my_id)
+	
+	print("[Player] Player ", name, " ID received. is_local=", is_local, " (my_id=", my_id, ")")
+	
+	# Sätt kamera för lokal spelare
+	if camera:
+		camera.current = is_local
+
 
 func _check_ui_authority():
-	if not is_multiplayer_authority():
+	if not is_local:
 		if has_node("CanvasLayer"):
 			var ui = get_node("CanvasLayer")
 			ui.visible = false
@@ -88,15 +99,14 @@ func speak(msg: String):
 
 
 func _physics_process(delta):
-	# Debug every 60 frames
+	# Debug every 60 frames (endast för lokal spelare)
 	if Engine.get_frames_drawn() % 60 == 0:
-		if is_multiplayer_authority():
-			print(name + " (Auth) Pos: " + str(position) + " OnFloor: " + str(is_on_floor()))
+		if is_local:
+			print(name + " (Local) Pos: " + str(position) + " OnFloor: " + str(is_on_floor()))
 
-	# NETWORK: Only move if I am the authority
-	# NETWORK: Only move if I am the authority
-	if not is_multiplayer_authority():
-		return # Do nothing! Let MultiplayerSynchronizer handle position.
+	# NETWORK: Only move if this is the local player
+	if not is_local:
+		return # Do nothing! Server will send position updates.
 
 	# Stop movement if typing in chat
 	if get_viewport().gui_get_focus_owner():
@@ -161,7 +171,8 @@ func _physics_process(delta):
 	
 	# Send position to server if we moved (and are authority)
 	if velocity.length() > 0:
-		NetworkManager.send_move_binary(position.x, position.z)
+		# Använd JSON för move - enklare och fungerar direkt med Colyseus
+		NetworkManager.send_move(position.x, position.z)
 
 @rpc("call_local")
 func swing_weapon():

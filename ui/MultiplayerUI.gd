@@ -32,11 +32,11 @@ func _update_manager_name():
 	manager.local_username = name_text
 
 func _on_host_pressed():
-	_update_manager_name()
-	get_node("/root/MultiplayerManager").host_game()
+	#_update_manager_name()
+	#get_node("/root/MultiplayerManager").host_game()
 	visible = false
 
 func _on_join_pressed():
-	_update_manager_name()
-	get_node("/root/MultiplayerManager").join_game(address_entry.text)
+	#_update_manager_name()
+	#get_node("/root/MultiplayerManager").join_game(address_entry.text)
 	visible = false

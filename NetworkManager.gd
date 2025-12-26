@@ -4,6 +4,9 @@ signal on_player_joined(id, x, y)
 signal on_player_moved(id, x, y)
 signal on_player_left(id)
 signal on_connected()
+signal on_enemy_spawned(enemy_id, x, y, type)
+signal on_enemy_died(enemy_id)
+signal on_my_id_received(my_id) # Emitteras när vi får vårt ID från servern
 
 var socket = WebSocketPeer.new()
 var http_request = HTTPRequest.new()
@@ -13,6 +16,17 @@ var room_name = "my_room"
 var session_id = ""
 var _was_connected = false
 var my_numeric_id = 0
+
+enum OP {
+	JOIN,
+	MOVE,
+	LEAVE,
+	ENEMY_SPAWN,
+	ENEMY_DEATH,
+	COLYSEUS_JOIN_ROOM = 10,
+	COLYSEUS_JOIN_ERROR = 11,
+	COLYSEUS_LEAVE_ROOM = 12
+}
 
 func _ready():
 	add_child(http_request)
@@ -72,10 +86,31 @@ func _process(_delta):
 		while socket.get_available_packet_count() > 0:
 			var packet = socket.get_packet() # PackedByteArray
 			
+			# DEBUG: Visa alla paket
+			print("[NetworkManager] Packet received! Size: ", packet.size(), " is_string: ", socket.was_string_packet())
+			
 			if socket.was_string_packet():
-				# Hybrid: Vi kan fortfarande ta emot JSON (t.ex. Welcome)
+				# Text-meddelande från Colyseus
 				var text = packet.get_string_from_utf8()
-				_handle_json_message(text)
+				print("[NetworkManager] Text message: ", text)
+				
+				# Försök tolka som JSON
+				var json = JSON.new()
+				if json.parse(text) == OK:
+					var data = json.data
+					
+					# Kolla om det är ett Colyseus message med type
+					if data is Array and data.size() > 0:
+						var msg_type = data[0]
+						
+						# "welcome" message
+						if msg_type == "welcome":
+							if data.size() > 1 and data[1] is Dictionary:
+								var msg_data = data[1]
+								if msg_data.has("myId"):
+									my_numeric_id = msg_data.myId
+									print("[NetworkManager] Jag har fått ID: ", my_numeric_id)
+									on_my_id_received.emit(my_numeric_id)
 			else:
 				# BINÄRT! Här händer magin.
 				_handle_binary_message(packet)
@@ -102,7 +137,7 @@ func _handle_binary_message(bytes: PackedByteArray):
 	print("[NetworkManager] OpCode: ", op_code)
 	
 	match op_code:
-		1: # JOIN (11 bytes: 1 op + 2 id + 4 x + 4 y)
+		OP.JOIN: # JOIN (11 bytes: 1 op + 2 id + 4 x + 4 y)
 			if bytes.size() < 11:
 				print("[NetworkManager] ERROR: JOIN-paket för kort! Behöver 11 bytes, fick ", bytes.size())
 				return
@@ -112,7 +147,7 @@ func _handle_binary_message(bytes: PackedByteArray):
 			print("[NetworkManager] JOIN: ID=%d, X=%.2f, Y=%.2f" % [pId, x, y])
 			on_player_joined.emit(pId, x, y)
 			
-		2: # MOVE (11 bytes)
+		OP.MOVE: # MOVE (11 bytes)
 			if bytes.size() < 11:
 				print("[NetworkManager] ERROR: MOVE-paket för kort! Behöver 11 bytes, fick ", bytes.size())
 				return
@@ -122,7 +157,7 @@ func _handle_binary_message(bytes: PackedByteArray):
 			print("[NetworkManager] MOVE: ID=%d, X=%.2f, Y=%.2f" % [pId, x, y])
 			on_player_moved.emit(pId, x, y)
 			
-		3: # LEAVE (3 bytes: 1 op + 2 id)
+		OP.LEAVE: # LEAVE (3 bytes: 1 op + 2 id)
 			if bytes.size() < 3:
 				print("[NetworkManager] ERROR: LEAVE-paket för kort! Behöver 3 bytes, fick ", bytes.size())
 				return
@@ -130,16 +165,32 @@ func _handle_binary_message(bytes: PackedByteArray):
 			print("[NetworkManager] LEAVE: ID=%d" % pId)
 			on_player_left.emit(pId)
 		
+		OP.ENEMY_SPAWN: # ENEMY_SPAWN (14 bytes: 1 op + 4 id + 4 x + 4 y + 1 type)
+			if bytes.size() < 14:
+				print("[NetworkManager] ERROR: ENEMY_SPAWN-paket för kort! Behöver 14 bytes, fick ", bytes.size())
+				return
+			var enemyId = buffer.get_u32() # 4 bytes
+			var x = buffer.get_float() # 4 bytes
+			var y = buffer.get_float() # 4 bytes
+			var type = buffer.get_u8() # 1 byte
+			print("[NetworkManager] ENEMY_SPAWN: ID=%d, X=%.2f, Y=%.2f, Type=%d" % [enemyId, x, y, type])
+			on_enemy_spawned.emit(enemyId, x, y, type)
+		
+		OP.ENEMY_DEATH: # ENEMY_DEATH (5 bytes: 1 op + 4 id)
+			if bytes.size() < 5:
+				print("[NetworkManager] ERROR: ENEMY_DEATH-paket för kort! Behöver 5 bytes, fick ", bytes.size())
+				return
+			var enemyId = buffer.get_u32()
+			print("[NetworkManager] ENEMY_DEATH: ID=%d" % enemyId)
+			on_enemy_died.emit(enemyId)
+			
+		OP.COLYSEUS_JOIN_ROOM:
+			print("[NetworkManager] Connected to Colyseus Room confirmed.")
+			
+		OP.COLYSEUS_LEAVE_ROOM:
+			print("[NetworkManager] Left Colyseus Room.")
 		_:
 			print("[NetworkManager] ERROR: Okänd OpCode: ", op_code)
-
-func _handle_json_message(json_str):
-	var json = JSON.new()
-	json.parse(json_str)
-	var data = json.data
-	if data.get("type") == "welcome":
-		my_numeric_id = data.myId
-		print("Jag har fått ID: ", my_numeric_id)
 
 # Hämta mitt numeriska ID
 func get_my_id() -> int:
@@ -155,7 +206,12 @@ func send_move(x, y):
 func send_move_binary(x: float, y: float):
 	var buffer = StreamPeerBuffer.new()
 	# Skapa paket: 1 byte (OP) + 4 bytes (X) + 4 bytes (Y) = 9 bytes
-	buffer.put_u8(2) # OpCode för MOVE
-	buffer.put_float(x) # X position
-	buffer.put_float(y) # Y position
+	buffer.put_u8(OP.MOVE) # Använd OP enum istället för hårdkodat värde
+	buffer.put_float(x) # X position (4 bytes)
+	buffer.put_float(y) # Y position (4 bytes)
 	socket.send(buffer.data_array)
+
+# Skicka enemy death till servern (JSON för enkelhetens skull)
+func send_enemy_death(enemy_id: int):
+	var msg = {"enemyId": enemy_id}
+	socket.send_text(JSON.stringify(msg))

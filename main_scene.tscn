@@ -2,8 +2,10 @@
 
 [ext_resource type="Script" uid="uid://b4rhyrvgmat7i" path="res://MainScene.gd" id="1_main_script"]
 [ext_resource type="PackedScene" uid="uid://vtd8bjpnt7m1" path="res://ui/MultiplayerUI.tscn" id="4_multiplayer_ui"]
-[ext_resource type="PackedScene" path="res://EnemyManager.tscn" id="5_manager_scene"]
+[ext_resource type="Script" uid="uid://d0wmsrn8sv2ql" path="res://ServerEnemyManager.gd" id="5_hq1ik"]
 [ext_resource type="PackedScene" path="res://ui/ChatUI.tscn" id="6_chat_ui"]
+[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Enemy.tscn" id="6_nfk4m"]
+[ext_resource type="PackedScene" uid="uid://bbbmuvf5ecbml" path="res://Enemy_Red.tscn" id="7_nfk4m"]
 [ext_resource type="PackedScene" path="res://Terrain.tscn" id="7_terrain"]
 
 [node name="MainScene" type="Node3D" unique_id=1504261338]
@@ -27,4 +29,8 @@ shadow_enabled = true
 
 [node name="Terrain" parent="." unique_id=1935818163 instance=ExtResource("7_terrain")]
 
-[node name="EnemyManager" parent="." unique_id=1690579957 instance=ExtResource("5_manager_scene")]
+[node name="ServerEnemyManager" type="Node3D" parent="." unique_id=1576850327]
+script = ExtResource("5_hq1ik")
+enemy_scenes = Array[PackedScene]([ExtResource("6_nfk4m"), ExtResource("6_nfk4m"), ExtResource("7_nfk4m")])
+
+[node name="Enemies" type="Node3D" parent="ServerEnemyManager" unique_id=1486457790]

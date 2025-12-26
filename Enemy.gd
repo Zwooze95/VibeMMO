@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+signal enemy_died() # Emittera när fienden dör så ServerEnemyManager kan meddela servern
+
 @export var level: int = 1
 @export var xp_reward: int = 50 # XP granted on death
 
@@ -31,12 +33,10 @@ func _on_died(killer):
 		leveling.add_xp(xp_reward)
 		print("Awarded ", xp_reward, " XP to ", killer.name)
 	
-	# Explicit RPC to ensure death on all clients
-	if multiplayer.is_server():
-		die.rpc()
-
-@rpc("call_local", "authority", "reliable")
-func die():
+	# Emittera signal så ServerEnemyManager kan meddela servern
+	enemy_died.emit()
+	
+	# Ta bort fienden
 	queue_free()
 
 func _on_damaged(_amount, _damager):
@@ -45,17 +45,8 @@ func _on_damaged(_amount, _damager):
 	tween.tween_property(sprite, "modulate", Color(10, 10, 10, 1), 0.05) # Super bright
 	tween.tween_property(sprite, "modulate", Color(1, 1, 1, 1), 0.05) # Back to normal White
 
-@rpc("unreliable_ordered", "authority", "call_remote")
-func update_pos(server_pos: Vector3):
-	global_position = server_pos
-
 func _physics_process(delta):
-	# Only the server moves the enemies (authoritative physics)
-	if multiplayer.is_server():
-		# Add gravity so they don't float
-		if not is_on_floor():
-			velocity.y -= 9.8 * delta
-			move_and_slide()
-		
-		# Send RPC to all clients
-		update_pos.rpc(global_position)
+	# Alla klienter kör samma physics (fiender rör sig inte, bara faller)
+	if not is_on_floor():
+		velocity.y -= 9.8 * delta
+		move_and_slide()

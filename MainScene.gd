@@ -51,3 +51,5 @@ func _on_player_moved(id, x, y):
 		# Interpolation could be added here, currently snapping
 		player.position.x = x
 		player.position.z = y
+		# Debug print (commented out - causes spam)
+		# print("[Main] Player ", id, " moved to (", x, ", ", y, ")")
