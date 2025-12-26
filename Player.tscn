@@ -1,0 +1,187 @@
+[gd_scene format=3 uid="uid://player456"]
+
+[ext_resource type="Script" uid="uid://d24t12wgi6r48" path="res://Player.gd" id="1_player"]
+[ext_resource type="Texture2D" uid="uid://c46grdia5vfv8" path="res://Playersheet2.png" id="2_sheet"]
+[ext_resource type="Script" uid="uid://cbejdyy6korth" path="res://components/HealthComponent.gd" id="3_health_comp"]
+[ext_resource type="Texture2D" uid="uid://b1cr1nuhvxob" path="res://eye2s_scaled_4x_pngcrushed.png" id="3_wi0c6"]
+[ext_resource type="Script" uid="uid://c6gtqu4saelif" path="res://components/LevelingComponent.gd" id="4_leveling_comp"]
+[ext_resource type="PackedScene" uid="uid://healthbar123" path="res://ui/HealthBar.tscn" id="5_healthbar"]
+[ext_resource type="PackedScene" uid="uid://dnr24gv6wg811" path="res://ui/ExperienceBar.tscn" id="6_xpbar"]
+[ext_resource type="PackedScene" uid="uid://c44sdmfgo8jnm" path="res://ui/LevelUpLabel.tscn" id="7_levelup"]
+[ext_resource type="PackedScene" uid="uid://gnowfvylj3ab" path="res://weapon.tscn" id="8_weapon"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+
+[sub_resource type="Animation" id="Animation_wi0c6"]
+length = 0.001
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite3D/Eyes")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0)
+
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite3D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+tracks/1/type = "position_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite3D/Eyes")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0, 0, 0.2, 1, 0, -0.02, 0)
+
+[sub_resource type="Animation" id="Animation_walk"]
+resource_name = "walk"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite3D:frame")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [2, 3, 4, 5]
+}
+tracks/1/type = "position_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite3D/Eyes")
+tracks/1/interp = 0
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, -0.1, 0.1, 0, 0.1, 1, -0.1, 0.05, 0, 0.2, 1, -0.1, 0.02, 0, 0.3, 1, -0.1, 0.05, 0)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
+_data = {
+&"RESET": SubResource("Animation_wi0c6"),
+&"idle": SubResource("Animation_idle"),
+&"walk": SubResource("Animation_walk")
+}
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_p"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Sprite3D:flip_h")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("AnimationPlayer:current_animation")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath(".:username")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath("WeaponPivot:position")
+properties/5/spawn = true
+properties/5/replication_mode = 1
+properties/6/path = NodePath("WeaponPivot:scale")
+properties/6/spawn = true
+properties/6/replication_mode = 1
+properties/7/path = NodePath("LevelingComponent:current_level")
+properties/7/spawn = true
+properties/7/replication_mode = 1
+properties/8/path = NodePath("LevelingComponent:current_xp")
+properties/8/spawn = true
+properties/8/replication_mode = 1
+
+[node name="Player" type="CharacterBody3D" unique_id=833300639]
+collision_layer = 2
+script = ExtResource("1_player")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=64426656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+billboard = 1
+texture_filter = 0
+render_priority = 1
+texture = ExtResource("2_sheet")
+hframes = 6
+
+[node name="Eyes" type="Sprite3D" parent="Sprite3D" unique_id=1860313853]
+billboard = 1
+render_priority = 2
+texture = ExtResource("3_wi0c6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1560488122]
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=742044557]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 10)
+projection = 1
+size = 7.935
+
+[node name="WeaponPivot" parent="." unique_id=210712505 instance=ExtResource("8_weapon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.5, 0)
+
+[node name="HealthComponent" type="Node" parent="." unique_id=116919341]
+script = ExtResource("3_health_comp")
+
+[node name="LevelingComponent" type="Node" parent="." unique_id=116919342]
+script = ExtResource("4_leveling_comp")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=977102425]
+
+[node name="HealthBar" parent="CanvasLayer" unique_id=1813813955 node_paths=PackedStringArray("health_component") instance=ExtResource("5_healthbar")]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 320.0
+offset_bottom = 50.0
+health_component = NodePath("../../HealthComponent")
+
+[node name="ExperienceBar" parent="CanvasLayer" unique_id=1813813956 node_paths=PackedStringArray("leveling_component") instance=ExtResource("6_xpbar")]
+offset_left = 20.0
+offset_top = 55.0
+offset_right = 320.0
+offset_bottom = 85.0
+leveling_component = NodePath("../../LevelingComponent")
+
+[node name="LevelUpLabel" parent="CanvasLayer" unique_id=1813813957 instance=ExtResource("7_levelup")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=714343765]
+libraries/ = SubResource("AnimationLibrary_1")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=1981158818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+pixel_size = 0.008
+billboard = 1
+outline_render_priority = 2
+text = "Player"
+font_size = 24
+outline_size = 2
+
+[node name="ChatBubble" type="Label3D" parent="." unique_id=9812371]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+pixel_size = 0.008
+billboard = 1
+outline_render_priority = 2
+font_size = 26
+outline_size = 1
+autowrap_mode = 3
+width = 160.0
+
+[node name="ChatTimer" type="Timer" parent="." unique_id=10928374]
+one_shot = true
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=518935912]
+replication_config = SubResource("SceneReplicationConfig_p")

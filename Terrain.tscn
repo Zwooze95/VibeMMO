@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://terrain_scene_123"]
+
+[sub_resource type="StandardMaterial3D" id="GrassMaterial"]
+albedo_color = Color(0.4, 0.7, 0.3, 1)
+roughness = 1.0
+metallic = 0.0
+shading_mode = 0
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+size = Vector2(100, 100)
+material = SubResource("GrassMaterial")
+
+[sub_resource type="BoxShape3D" id="GroundCollision"]
+size = Vector3(100, 0.2, 100)
+
+[sub_resource type="StandardMaterial3D" id="PathMaterial"]
+albedo_color = Color(0.6, 0.5, 0.4, 1)
+roughness = 1.0
+shading_mode = 0
+
+[sub_resource type="PlaneMesh" id="PathMesh"]
+size = Vector2(4, 20)
+material = SubResource("PathMaterial")
+
+[sub_resource type="StandardMaterial3D" id="WaterMaterial"]
+albedo_color = Color(0.3, 0.5, 0.8, 0.7)
+transparency = 1
+
+[sub_resource type="PlaneMesh" id="WaterMesh"]
+size = Vector2(8, 8)
+material = SubResource("WaterMaterial")
+
+[node name="Terrain" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("GroundMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+shape = SubResource("GroundCollision")
+
+[node name="Decorations" type="Node3D" parent="."]
+
+[node name="Path1" type="MeshInstance3D" parent="Decorations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("PathMesh")
+
+[node name="Path2" type="MeshInstance3D" parent="Decorations"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0.01, 0)
+mesh = SubResource("PathMesh")
+
+[node name="Water1" type="MeshInstance3D" parent="Decorations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.02, -15)
+mesh = SubResource("WaterMesh")
+
+[node name="Water2" type="MeshInstance3D" parent="Decorations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.02, 20)
+mesh = SubResource("WaterMesh")

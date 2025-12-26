@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://c8j7k3l5m4n2p"]
+
+[ext_resource type="Script" path="res://EnemySpawner.gd" id="1_spawner"]
+[ext_resource type="PackedScene" uid="uid://enemy123" path="res://Enemy.tscn" id="2_enemy_scn"]
+
+[node name="EnemySpawner" type="Node3D"]
+script = ExtResource("1_spawner")
+enemy_scene = ExtResource("2_enemy_scn")
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://Enemy.tscn")
+spawn_path = NodePath("../Enemies")
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="Enemies" type="Node3D" parent="."]

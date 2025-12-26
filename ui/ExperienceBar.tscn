@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dnr24gv6wg811"]
+
+[ext_resource type="Script" path="res://ui/ExperienceBar.gd" id="1_xpbar"]
+
+[node name="ExperienceBar" type="ProgressBar"]
+offset_right = 300.0
+offset_bottom = 27.0
+show_percentage = false
+script = ExtResource("1_xpbar")
+
+[node name="LevelLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 60.0
+offset_bottom = 27.0
+text = "Lvl 1"

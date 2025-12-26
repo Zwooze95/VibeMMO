@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://nf4c2m7e7ogg"]
+
+[ext_resource type="Script" uid="uid://d3wyy8qqlx4cv" path="res://HitParticles.gd" id="1_particles"]
+
+[sub_resource type="Curve" id="Curve_scale"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_s"]
+curve = SubResource("Curve_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_p"]
+emission_shape = 1
+emission_sphere_radius = 0.2
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 5.0
+scale_curve = SubResource("CurveTexture_s")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p"]
+shading_mode = 0
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_p"]
+material = SubResource("StandardMaterial3D_p")
+size = Vector2(0.1, 0.1)
+
+[node name="HitParticles" type="GPUParticles3D" unique_id=1561521681]
+emitting = false
+amount = 12
+amount_ratio = 0.4859
+one_shot = true
+speed_scale = 1.27
+explosiveness = 1.0
+trail_lifetime = 0.01
+process_material = SubResource("ParticleProcessMaterial_p")
+draw_pass_1 = SubResource("QuadMesh_p")
+script = ExtResource("1_particles")
+
+[connection signal="finished" from="." to="." method="_on_finished"]
