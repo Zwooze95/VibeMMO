@@ -71,7 +71,9 @@ func _on_chat_timeout():
 	chat_bubble.text = ""
 
 func _on_leveled_up(new_level: int):
-	print(username, " leveled up to level ", new_level)
+	var s = username + " leveled up to level " + new_level
+	print(s)
+	NetworkManager.send_chat(s)
 	update_nameplate()
 	
 	# Show level-up notification if we have UI
@@ -174,7 +176,7 @@ func _physics_process(delta):
 	# Send position to server if we moved (and are authority)
 	if velocity.length() > 0:
 		# Använd vårt egna binära protokoll
-		NetworkManager.send_move_binary(position.x, position.z)
+		NetworkManager.send_move_binary(position.x, position.z, sprite_3d.flip_h)
 
 @rpc("call_local")
 func swing_weapon():

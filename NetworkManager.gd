@@ -1,7 +1,7 @@
 extends Node
 
 signal on_player_joined(id, x, y)
-signal on_player_moved(id, x, y)
+signal on_player_moved(id, x, y, flip)
 signal on_player_left(id)
 signal on_connected()
 signal on_enemy_spawned(enemy_id, x, y, type)
@@ -41,12 +41,12 @@ func _ready():
 	print("[NetworkManager] waiting for connnect_to_server()")
 	
 func connect_to_server(addr: String):
-	ws_url = "ws://"+addr
+	ws_url = "ws://" + addr
 	add_child(http_request)
 	http_request.request_completed.connect(_on_seat_reserved)
 	
 	print("[NetworkManager] Bokar plats via HTTP...")
-	var url = "http://"+ addr + "/matchmake/joinOrCreate/" + room_name
+	var url = "http://" + addr + "/matchmake/joinOrCreate/" + room_name
 	var headers = ["Content-Type: application/json"]
 	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, "{}")
 	
@@ -177,8 +177,9 @@ func _handle_binary_message(bytes: PackedByteArray):
 			var pId = buffer.get_u16()
 			var x = buffer.get_float()
 			var y = buffer.get_float()
-			print("[NetworkManager] MOVE: ID=%d, X=%.2f, Y=%.2f" % [pId, x, y])
-			on_player_moved.emit(pId, x, y)
+			var flip = buffer.get_u8()
+			print("[NetworkManager] MOVE: ID=%d, X=%.2f, Y=%.2f, Flip=%d" % [pId, x, y, flip])
+			on_player_moved.emit(pId, x, y, flip)
 			
 		OP.LEAVE: # LEAVE (3 bytes: 1 op + 2 id)
 			if bytes.size() < 3:
@@ -235,12 +236,13 @@ func send_move(x, y):
 
 # ALTERNATIV: Skicka binär move (om du vill implementera binär INPUT också)
 # Du måste då ändra servern för att ta emot binärt istället för JSON
-func send_move_binary(x: float, y: float):
+func send_move_binary(x: float, y: float, flip: bool):
 	var buffer = StreamPeerBuffer.new()
 	# Skapa paket: 1 byte (OP) + 4 bytes (X) + 4 bytes (Y) = 9 bytes
 	buffer.put_u8(OP.MOVE) # Använd OP enum istället för hårdkodat värde
 	buffer.put_float(x) # X position (4 bytes)
 	buffer.put_float(y) # Y position (4 bytes)
+	buffer.put_u8(flip)
 	socket.send(buffer.data_array)
 
 # Skicka enemy death till servern (BINÄRT)

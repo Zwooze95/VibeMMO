@@ -90,19 +90,21 @@ export class MyRoom extends Room {
 
         switch (opCode) {
             case OP.MOVE:
-                if (buffer.length < 9) {
+                if (buffer.length < 10) {
                     console.log(`[MyRoom] MOVE packet too short: ${buffer.length} bytes`);
                     return;
                 }
                 const x = buffer.readFloatLE(1);
                 const y = buffer.readFloatLE(5);
+                const flip = buffer.readUint8(9);
 
                 const player = this.players[client.sessionId];
                 if (player) {
                     player.x = x;
                     player.y = y;
+                    player.flip = flip;
                     // Broadcast to all
-                    this.broadcastMove(player.pId, player.x, player.y);
+                    this.broadcastMove(player.pId, player.x, player.y, player.flip);
                 }
                 break;
 
@@ -214,14 +216,14 @@ export class MyRoom extends Room {
 
     // --- BINÄRA HJÄLPFUNKTIONER ---
 
-    broadcastMove(pId: number, x: number, y: number) {
+    broadcastMove(pId: number, x: number, y: number, flip: number) {
         // Skapa buffert: 1 byte (OP) + 2 bytes (ID) + 4 bytes (X) + 4 bytes (Y) = 11
-        const buffer = Buffer.alloc(11);
+        const buffer = Buffer.alloc(12);
         buffer.writeUInt8(OP.MOVE, 0);      // Index 0
         buffer.writeUInt16LE(pId, 1);       // Index 1 (Little Endian)
         buffer.writeFloatLE(x, 3);          // Index 3
         buffer.writeFloatLE(y, 7);          // Index 7
-
+        buffer.writeUInt8(flip, 11);
         this.broadcastRaw(buffer);
     }
 

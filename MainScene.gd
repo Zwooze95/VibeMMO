@@ -45,11 +45,13 @@ func _on_player_left(id):
 	if players_node.has_node(str(id)):
 		players_node.get_node(str(id)).queue_free()
 
-func _on_player_moved(id, x, y):
+func _on_player_moved(id, x, y, flip):
 	var player = players_node.get_node_or_null(str(id))
 	if player:
 		# Interpolation could be added here, currently snapping
+		print("[Main] uppdaterar pos för ID: ", id, " flip: ",  flip)
 		player.position.x = x
 		player.position.z = y
+		player.sprite_3d.flip_h = flip
 		# Debug print (commented out - causes spam)
 		# print("[Main] Player ", id, " moved to (", x, ", ", y, ")")
