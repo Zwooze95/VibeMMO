@@ -71,7 +71,7 @@ func _on_chat_timeout():
 	chat_bubble.text = ""
 
 func _on_leveled_up(new_level: int):
-	var s = username + " leveled up to level " + new_level
+	var s = str(username) + " leveled up to level " + str(new_level)
 	print(s)
 	NetworkManager.send_chat(s)
 	update_nameplate()
