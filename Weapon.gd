@@ -7,6 +7,7 @@ const HitParticles = preload("res://HitParticles.tscn")
 func swing():
 	if not anim.is_playing():
 		anim.play("swing")
+		
 
 func _on_area_3d_body_entered(body):
 	if body == get_parent():

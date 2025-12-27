@@ -103,7 +103,7 @@ projection = 1
 size = 7.935
 
 [node name="WeaponPivot" parent="." unique_id=210712505 instance=ExtResource("8_weapon")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
 [node name="HealthComponent" type="Node" parent="." unique_id=116919341]
 script = ExtResource("3_health_comp")

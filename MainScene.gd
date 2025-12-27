@@ -52,6 +52,9 @@ func _on_player_moved(id, x, y, flip):
 		print("[Main] uppdaterar pos för ID: ", id, " flip: ",  flip)
 		player.position.x = x
 		player.position.z = y
-		player.sprite_3d.flip_h = flip
+		if flip:
+			player.weapon.scale = Vector3(-1,1,1)
+		else:
+			player.weapon.scale = Vector3(1,1,1)
 		# Debug print (commented out - causes spam)
 		# print("[Main] Player ", id, " moved to (", x, ", ", y, ")")
