@@ -77,35 +77,6 @@ _data = {
 &"walk": SubResource("Animation_walk")
 }
 
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_p"]
-properties/0/path = NodePath(".:position")
-properties/0/spawn = true
-properties/0/replication_mode = 1
-properties/1/path = NodePath(".:rotation")
-properties/1/spawn = true
-properties/1/replication_mode = 1
-properties/2/path = NodePath("Sprite3D:flip_h")
-properties/2/spawn = true
-properties/2/replication_mode = 1
-properties/3/path = NodePath("AnimationPlayer:current_animation")
-properties/3/spawn = true
-properties/3/replication_mode = 1
-properties/4/path = NodePath(".:username")
-properties/4/spawn = true
-properties/4/replication_mode = 1
-properties/5/path = NodePath("WeaponPivot:position")
-properties/5/spawn = true
-properties/5/replication_mode = 1
-properties/6/path = NodePath("WeaponPivot:scale")
-properties/6/spawn = true
-properties/6/replication_mode = 1
-properties/7/path = NodePath("LevelingComponent:current_level")
-properties/7/spawn = true
-properties/7/replication_mode = 1
-properties/8/path = NodePath("LevelingComponent:current_xp")
-properties/8/spawn = true
-properties/8/replication_mode = 1
-
 [node name="Player" type="CharacterBody3D" unique_id=833300639]
 collision_layer = 2
 script = ExtResource("1_player")
@@ -182,6 +153,3 @@ width = 160.0
 
 [node name="ChatTimer" type="Timer" parent="." unique_id=10928374]
 one_shot = true
-
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=518935912]
-replication_config = SubResource("SceneReplicationConfig_p")

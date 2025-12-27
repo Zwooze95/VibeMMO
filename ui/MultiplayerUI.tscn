@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://vtd8bjpnt7m1"]
+[gd_scene format=3 uid="uid://vtd8bjpnt7m1"]
 
-[ext_resource type="Script" path="res://ui/MultiplayerUI.gd" id="1_ui_script"]
+[ext_resource type="Script" uid="uid://6w32a8v1wnhb" path="res://ui/MultiplayerUI.gd" id="1_ui_script"]
 
-[node name="MultiplayerUI" type="CanvasLayer"]
+[node name="MultiplayerUI" type="CanvasLayer" unique_id=673811804]
 script = ExtResource("1_ui_script")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=810162339]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -13,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=804751033]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -26,31 +26,32 @@ offset_bottom = 66.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=1819454397]
 layout_mode = 2
 text = "Username:"
 
-[node name="NameEntry" type="LineEdit" parent="VBoxContainer"]
+[node name="NameEntry" type="LineEdit" parent="VBoxContainer" unique_id=1760379427]
 layout_mode = 2
 placeholder_text = "Name (Max 10)"
 max_length = 10
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer" unique_id=471086027]
 layout_mode = 2
 
-[node name="HostButton" type="Button" parent="VBoxContainer"]
+[node name="HostButton" type="Button" parent="VBoxContainer" unique_id=527875971]
 layout_mode = 2
+disabled = true
 text = "HOST"
 
-[node name="AddressLabel" type="Label" parent="VBoxContainer"]
+[node name="AddressLabel" type="Label" parent="VBoxContainer" unique_id=679378664]
 layout_mode = 2
 text = "Join Address:"
 
-[node name="AddressEntry" type="LineEdit" parent="VBoxContainer"]
+[node name="AddressEntry" type="LineEdit" parent="VBoxContainer" unique_id=596849032]
 layout_mode = 2
-text = "127.0.0.1"
-placeholder_text = "127.0.0.1"
+text = "localhost:2567"
+placeholder_text = "localhost:2567"
 
-[node name="JoinButton" type="Button" parent="VBoxContainer"]
+[node name="JoinButton" type="Button" parent="VBoxContainer" unique_id=1948029306]
 layout_mode = 2
 text = "JOIN"

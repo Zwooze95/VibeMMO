@@ -7,6 +7,7 @@ extends Node3D
 @onready var enemies_container = $Enemies
 
 var spawned_enemies = {} # { enemyId: enemy_node }
+var recent_local_damage = {} # { enemyId: timestamp } - för att undvika double-damage
 
 func _ready():
 	print("[ServerEnemyManager] Lyssnar på NetworkManager...")
@@ -49,19 +50,45 @@ func _on_enemy_spawned(enemy_id: int, x: float, y: float, type: int):
 func _on_local_enemy_damaged(enemy_id: int, damage: float):
 	# En fiende tog skada lokalt - meddela servern
 	print("[ServerEnemyManager] Local enemy ", enemy_id, " took ", damage, " damage - meddelar servern")
+	
+	# Markera att vi just slog denna fiende (för att ignorera server echo)
+	recent_local_damage[enemy_id] = Time.get_ticks_msec()
+	
 	NetworkManager.send_enemy_damage(enemy_id, damage)
 
 func _on_enemy_damaged(enemy_id: int, damage: float):
-	# Servern säger att fienden tog skada - visa damage animation
+	# Servern säger att fienden tog skada - applicera damage
 	print("[ServerEnemyManager] Server säger: Enemy ", enemy_id, " tog ", damage, " damage")
+	
+	# Kolla om vi själva slog denna fiende nyligen (inom 100ms)
+	if recent_local_damage.has(enemy_id):
+		var time_since = Time.get_ticks_msec() - recent_local_damage[enemy_id]
+		if time_since < 100:
+			print("[ServerEnemyManager] Ignorerar server damage (echo från local hit)")
+			recent_local_damage.erase(enemy_id)
+			return
+		else:
+			recent_local_damage.erase(enemy_id)
 	
 	if spawned_enemies.has(enemy_id):
 		var enemy = spawned_enemies[enemy_id]
 		
 		if is_instance_valid(enemy):
-			# Triggera damage animation (flash white är redan i Enemy.gd)
-			if enemy.has_method("_on_damaged"):
-				enemy._on_damaged(damage, null)
+			# Applicera damage på HealthComponent (utan att trigga signal igen)
+			if enemy.has_node("HealthComponent"):
+				var health_comp = enemy.get_node("HealthComponent")
+				# Applicera damage direkt utan att trigga damaged signal
+				health_comp.current_health -= damage
+				health_comp.current_health = max(0, health_comp.current_health)
+				
+				# Visa damage animation
+				if enemy.has_method("_on_damaged"):
+					enemy._on_damaged(damage, null)
+				
+				# Kolla om fienden dog (men skicka INTE death till servern igen)
+				if health_comp.current_health <= 0 and not enemy.is_queued_for_deletion():
+					print("[ServerEnemyManager] Enemy ", enemy_id, " dog från remote damage")
+					# Servern kommer skicka ENEMY_DEATH snart, så vi väntar på det
 
 
 func _on_local_enemy_died(enemy_id: int):

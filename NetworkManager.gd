@@ -12,12 +12,18 @@ signal on_enemy_damaged(enemyId, damage)
 
 var socket = WebSocketPeer.new()
 var http_request = HTTPRequest.new()
-var server_url = "http://localhost:2567"
-var ws_url = "ws://localhost:2567"
 var room_name = "my_room"
 var session_id = ""
 var _was_connected = false
 var my_numeric_id = 0
+
+@export var server_url: String = "http://localhost:2567":
+	set(value):
+		server_url = value
+		
+@export var ws_url: String = "ws://localhost:2567":
+	set(value):
+		ws_url = value
 
 enum OP {
 	JOIN,
@@ -32,11 +38,15 @@ enum OP {
 }
 
 func _ready():
+	print("[NetworkManager] waiting for connnect_to_server()")
+	
+func connect_to_server(addr: String):
+	ws_url = "ws://"+addr
 	add_child(http_request)
 	http_request.request_completed.connect(_on_seat_reserved)
 	
 	print("[NetworkManager] Bokar plats via HTTP...")
-	var url = server_url + "/matchmake/joinOrCreate/" + room_name
+	var url = "http://"+ addr + "/matchmake/joinOrCreate/" + room_name
 	var headers = ["Content-Type: application/json"]
 	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, "{}")
 	
@@ -121,7 +131,7 @@ func _process(_delta):
 								"chat":
 									if data.has("playerId") and data.has("message"):
 										print("[NetworkManager] Chat från spelare ", data.playerId, ": ", data.message)
-										on_chat_received.emit(data.playerId, data.message)
+										on_chat_received.emit(str(data.playerId), str(data.message))
 								_:
 									print("[NetworkManager] Unknown message type: ", data.type)
 			else:

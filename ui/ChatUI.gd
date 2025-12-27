@@ -5,6 +5,7 @@ extends Control
 
 func _ready():
 	input_field.text_submitted.connect(_on_text_submitted)
+	NetworkManager.on_chat_received.connect(add_log)
 	add_to_group("Chat")
 
 func _input(event):
@@ -21,17 +22,8 @@ func _on_text_submitted(text):
 	if text.strip_edges() == "":
 		input_field.release_focus()
 		return
-		
-	# Find local player to speak through
-	var my_id = multiplayer.get_unique_id()
-	var player_path = "/root/MainScene/Players/" + str(my_id)
-	var my_player = get_node_or_null(player_path)
-	
-	if my_player:
-		my_player.speak.rpc(text)
-	else:
-		print("ChatUI: Could not find local player at " + player_path)
-	
+
+	NetworkManager.send_chat(text)
 	input_field.text = ""
 	input_field.release_focus()
 

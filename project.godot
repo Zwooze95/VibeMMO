@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-MultiplayerManager="*res://MultiplayerManager.gd"
 NetworkManager="*res://NetworkManager.gd"
 
 [display]

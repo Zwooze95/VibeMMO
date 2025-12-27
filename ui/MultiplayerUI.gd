@@ -21,7 +21,6 @@ func _on_name_changed(new_text):
 		name_entry.caret_column = 10
 	
 	var is_valid = name_entry.text.strip_edges().length() > 0
-	host_btn.disabled = not is_valid
 	join_btn.disabled = not is_valid
 
 func _update_manager_name():
@@ -39,4 +38,5 @@ func _on_host_pressed():
 func _on_join_pressed():
 	#_update_manager_name()
 	#get_node("/root/MultiplayerManager").join_game(address_entry.text)
+	NetworkManager.connect_to_server(address_entry.text)
 	visible = false

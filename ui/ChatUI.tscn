@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://cnuvxl08ot4n"]
 
-[ext_resource type="Script" path="res://ui/ChatUI.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://pbua4pwte3qc" path="res://ui/ChatUI.gd" id="1_script"]
 
-[node name="ChatUI" type="Control"]
+[node name="ChatUI" type="Control" unique_id=1168869338]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,7 +12,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_script")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1196786188]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -21,16 +21,16 @@ offset_top = -150.0
 offset_right = 400.0
 grow_vertical = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=1554773023]
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer"]
+[node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer" unique_id=416784076]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 text = "[i]Welcome to the chat![/i]"
 scroll_following = true
 
-[node name="LineEdit" type="LineEdit" parent="PanelContainer/VBoxContainer"]
+[node name="LineEdit" type="LineEdit" parent="PanelContainer/VBoxContainer" unique_id=441547180]
 layout_mode = 2
 placeholder_text = "Press Enter to chat..."
