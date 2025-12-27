@@ -51,5 +51,9 @@ func _on_enemy_died(enemy_id: int):
 	
 	if spawned_enemies.has(enemy_id):
 		var enemy = spawned_enemies[enemy_id]
-		enemy.queue_free()
+		
+		# Kolla om noden fortfarande är valid (kan redan vara borta)
+		if is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+			enemy.queue_free()
+		
 		spawned_enemies.erase(enemy_id)

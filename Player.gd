@@ -88,13 +88,15 @@ func update_nameplate():
 	else:
 		label_3d.text = username
 
-@rpc("call_local", "any_peer", "reliable")
 func speak(msg: String):
-	# Update visual bubble
+	# Update local visual bubble
 	chat_bubble.text = msg
 	chat_timer.start(4.0)
 	
-	# Update global chat log
+	# Send to server
+	NetworkManager.send_chat(msg)
+	
+	# Update global chat log locally
 	get_tree().call_group("Chat", "add_log", username, msg)
 
 

@@ -33,8 +33,11 @@ func _on_died(killer):
 		leveling.add_xp(xp_reward)
 		print("Awarded ", xp_reward, " XP to ", killer.name)
 	
-	# Emittera signal så ServerEnemyManager kan meddela servern
+	# Emittera signal FÖRST så ServerEnemyManager kan meddela servern
 	enemy_died.emit()
+	
+	# Vänta en frame innan vi tar bort noden
+	await get_tree().process_frame
 	
 	# Ta bort fienden
 	queue_free()

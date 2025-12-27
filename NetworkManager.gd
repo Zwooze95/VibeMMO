@@ -7,6 +7,7 @@ signal on_connected()
 signal on_enemy_spawned(enemy_id, x, y, type)
 signal on_enemy_died(enemy_id)
 signal on_my_id_received(my_id) # Emitteras när vi får vårt ID från servern
+signal on_chat_received(player_id, message) # Chat från andra spelare
 
 var socket = WebSocketPeer.new()
 var http_request = HTTPRequest.new()
@@ -111,6 +112,16 @@ func _process(_delta):
 									my_numeric_id = msg_data.myId
 									print("[NetworkManager] Jag har fått ID: ", my_numeric_id)
 									on_my_id_received.emit(my_numeric_id)
+					# Eller regular JSON object med 'type' field
+					elif data is Dictionary:
+						if data.has("type"):
+							match data.type:
+								"chat":
+									if data.has("playerId") and data.has("message"):
+										print("[NetworkManager] Chat från spelare ", data.playerId, ": ", data.message)
+										on_chat_received.emit(data.playerId, data.message)
+								_:
+									print("[NetworkManager] Unknown message type: ", data.type)
 			else:
 				# BINÄRT! Här händer magin.
 				_handle_binary_message(packet)
@@ -211,7 +222,14 @@ func send_move_binary(x: float, y: float):
 	buffer.put_float(y) # Y position (4 bytes)
 	socket.send(buffer.data_array)
 
-# Skicka enemy death till servern (JSON för enkelhetens skull)
+# Skicka enemy death till servern (BINÄRT)
 func send_enemy_death(enemy_id: int):
-	var msg = {"enemyId": enemy_id}
+	var buffer = StreamPeerBuffer.new()
+	buffer.put_u8(OP.ENEMY_DEATH) # 1 byte
+	buffer.put_u32(enemy_id) # 4 bytes
+	socket.send(buffer.data_array) # Totalt 5 bytes
+
+# Skicka chat message till servern (JSON för variabel längd text)
+func send_chat(message: String):
+	var msg = {"type": "chat", "message": message}
 	socket.send_text(JSON.stringify(msg))

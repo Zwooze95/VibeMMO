@@ -51,8 +51,10 @@ export class MyRoom extends Room {
             // Om det är binär data
             if (Buffer.isBuffer(data)) {
                 this.handleRawBinaryMessage(client, data);
+            } else if (typeof data === 'string') {
+                // Text data - parse JSON
+                this.handleRawTextMessage(client, data);
             }
-            // Colyseus hanterar text messages via sitt eget system
         });
 
         // 1. Skicka "Welcome" (Vem är jag?) - Skicka som RAW text
@@ -103,8 +105,50 @@ export class MyRoom extends Room {
                 }
                 break;
 
+            case OP.ENEMY_DEATH:
+                if (buffer.length < 5) {
+                    console.log(`[MyRoom] ENEMY_DEATH packet too short: ${buffer.length} bytes`);
+                    return;
+                }
+                const enemyId = buffer.readUInt32LE(1);
+
+                if (this.enemies[enemyId]) {
+                    console.log(`[MyRoom] Enemy ${enemyId} died, removed by player ${this.players[client.sessionId]?.pId}`);
+                    delete this.enemies[enemyId];
+                    this.broadcastEnemyDeath(enemyId);
+                }
+                break;
+
             default:
                 console.log(`[MyRoom] Unknown raw opcode: ${opCode}`);
+        }
+    }
+
+    // Hantera raw text (JSON) meddelanden från klienter
+    handleRawTextMessage(client: Client, text: string) {
+        try {
+            const data = JSON.parse(text);
+
+            // Kolla message type
+            if (data.type === 'enemy_death') {
+                const enemyId = data.enemyId;
+                if (this.enemies[enemyId]) {
+                    console.log(`[MyRoom] Enemy ${enemyId} died, removed by player ${this.players[client.sessionId]?.pId}`);
+                    delete this.enemies[enemyId];
+                    this.broadcastEnemyDeath(enemyId);
+                }
+            } else if (data.type === 'chat') {
+                const player = this.players[client.sessionId];
+                if (player) {
+                    console.log(`[MyRoom] Chat from player ${player.pId}: ${data.message}`);
+                    // Broadcast chat till alla
+                    this.broadcastChat(player.pId, data.message);
+                }
+            } else {
+                console.log(`[MyRoom] Unknown text message type: ${data.type}`);
+            }
+        } catch (e) {
+            console.log(`[MyRoom] Failed to parse text message:`, e);
         }
     }
 
@@ -232,5 +276,15 @@ export class MyRoom extends Room {
         if ((client as any).ref.readyState === 1) {
             (client as any).ref.send(buffer);
         }
+    }
+
+    broadcastChat(pId: number, message: string) {
+        // Skicka chat som JSON text
+        const chatMsg = JSON.stringify({ type: 'chat', playerId: pId, message: message });
+        this.clients.forEach(c => {
+            if ((c as any).ref.readyState === 1) {
+                (c as any).ref.send(chatMsg);
+            }
+        });
     }
 }
