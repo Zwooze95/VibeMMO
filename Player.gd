@@ -171,8 +171,8 @@ func _physics_process(delta):
 	
 	# Send position to server if we moved (and are authority)
 	if velocity.length() > 0:
-		# Använd JSON för move - enklare och fungerar direkt med Colyseus
-		NetworkManager.send_move(position.x, position.z)
+		# Använd vårt egna binära protokoll
+		NetworkManager.send_move_binary(position.x, position.z)
 
 @rpc("call_local")
 func swing_weapon():

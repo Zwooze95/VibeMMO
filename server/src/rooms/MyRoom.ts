@@ -27,58 +27,12 @@ export class MyRoom extends Room {
     players: any = {}; // { sessionId: { pId: 1, x: 0, y: 0 } }
 
     onCreate(options: any) {
-        // Ta emot JSON "move" (för bakåtkompatibilitet)
-        this.onMessage("move", (client, data) => {
-            const player = this.players[client.sessionId];
-            if (player) {
-                player.x = data.x;
-                player.y = data.y;
-                // Skicka binär uppdatering till alla
-                this.broadcastMove(player.pId, player.x, player.y);
-            }
-        });
+        // VIKTIGT: Vi använder INTE Colyseus onMessage för game messages
+        // Istället lyssnar vi direkt på raw WebSocket messages
 
-        // Ta emot BINÄR "move" från klienten
-        this.onMessage(0, (client, bytes: ArrayBuffer | number[]) => {
-            // Konvertera till Buffer om det behövs
-            const buffer = Buffer.from(bytes as any);
-
-            // Validera längd (1 byte OP + 4 bytes X + 4 bytes Y = 9 bytes)
-            if (buffer.length < 9) {
-                console.log(`[MyRoom] Binärt move-paket för kort: ${buffer.length} bytes`);
-                return;
-            }
-
-            // Läs data
-            const opCode = buffer.readUInt8(0);
-
-            // Kolla att det är MOVE (2)
-            if (opCode !== OP.MOVE) {
-                console.log(`[MyRoom] Binärt paket har fel OpCode: ${opCode}`);
-                return;
-            }
-
-            const x = buffer.readFloatLE(1);  // Börja på byte 1
-            const y = buffer.readFloatLE(5);  // Börja på byte 5
-
-            const player = this.players[client.sessionId];
-            if (player) {
-                player.x = x;
-                player.y = y;
-                console.log(`[MyRoom] Binär move från ID ${player.pId}: X=${x.toFixed(2)}, Y=${y.toFixed(2)}`);
-                // Skicka binär uppdatering till alla
-                this.broadcastMove(player.pId, player.x, player.y);
-            }
-        });
-
-        // Ta emot "enemy_death" från klienten (JSON för enkelhetens skull)
-        this.onMessage("enemy_death", (client, data) => {
-            const enemyId = data.enemyId;
-            if (this.enemies[enemyId]) {
-                console.log(`[MyRoom] Enemy ${enemyId} died, removed by player`);
-                delete this.enemies[enemyId];
-                this.broadcastEnemyDeath(enemyId);
-            }
+        this.onMessage("*", (client, type, message) => {
+            // Fånga alla Colyseus messages vi inte hanterar
+            console.log(`[MyRoom] Unhandled Colyseus message: ${type}`, message);
         });
 
         // Starta enemy spawning
@@ -91,10 +45,20 @@ export class MyRoom extends Room {
 
         console.log(`Spelare joinade. Tilldelad ID: ${pId}`);
 
+        // Lyssna på RAW WebSocket messages (utanför Colyseus protokoll)
+        const ws = (client as any).ref;
+        ws.on('message', (data: Buffer | string) => {
+            // Om det är binär data
+            if (Buffer.isBuffer(data)) {
+                this.handleRawBinaryMessage(client, data);
+            }
+            // Colyseus hanterar text messages via sitt eget system
+        });
+
         // 1. Skicka "Welcome" (Vem är jag?) - Skicka som RAW text
         const welcomeMsg = JSON.stringify(["welcome", { myId: pId }]);
-        if ((client as any).ref.readyState === 1) {
-            (client as any).ref.send(welcomeMsg);
+        if (ws.readyState === 1) {
+            ws.send(welcomeMsg);
         }
 
         // 2. Skicka BINÄRT "Join" till alla andra
@@ -112,6 +76,35 @@ export class MyRoom extends Room {
         for (let enemyId in this.enemies) {
             const enemy = this.enemies[enemyId];
             this.sendEnemySpawnTo(client, parseInt(enemyId), enemy.x, enemy.y, enemy.type);
+        }
+    }
+
+    // Hantera raw binära meddelanden från klienter
+    handleRawBinaryMessage(client: Client, buffer: Buffer) {
+        if (buffer.length < 1) return;
+
+        const opCode = buffer.readUInt8(0);
+
+        switch (opCode) {
+            case OP.MOVE:
+                if (buffer.length < 9) {
+                    console.log(`[MyRoom] MOVE packet too short: ${buffer.length} bytes`);
+                    return;
+                }
+                const x = buffer.readFloatLE(1);
+                const y = buffer.readFloatLE(5);
+
+                const player = this.players[client.sessionId];
+                if (player) {
+                    player.x = x;
+                    player.y = y;
+                    // Broadcast to all
+                    this.broadcastMove(player.pId, player.x, player.y);
+                }
+                break;
+
+            default:
+                console.log(`[MyRoom] Unknown raw opcode: ${opCode}`);
         }
     }
 

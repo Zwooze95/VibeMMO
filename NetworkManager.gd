@@ -196,9 +196,9 @@ func _handle_binary_message(bytes: PackedByteArray):
 func get_my_id() -> int:
 	return my_numeric_id
 
-# Skicka move som JSON (servern förväntar sig detta format just nu)
+# Skicka move som Colyseus message (JSON array format)
 func send_move(x, y):
-	var msg = {"type": "move", "x": x, "y": y}
+	var msg = ["move", {"x": x, "y": y}]
 	socket.send_text(JSON.stringify(msg))
 
 # ALTERNATIV: Skicka binär move (om du vill implementera binär INPUT också)
