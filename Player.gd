@@ -123,7 +123,7 @@ func _physics_process(delta):
 	# ATTACK LOGIC (Space bar)
 	# Hits are now handled by the Weapon's internal Area3D
 	if Input.is_action_just_pressed("ui_accept"):
-		swing_weapon.rpc()
+		swing_weapon()
 
 	# DAMAGE TEST (Self)
 	if Input.is_physical_key_pressed(KEY_K):
@@ -178,6 +178,5 @@ func _physics_process(delta):
 		# Använd vårt egna binära protokoll
 		NetworkManager.send_move_binary(position.x, position.z, sprite_3d.flip_h)
 
-@rpc("call_local")
 func swing_weapon():
 	weapon.swing()

@@ -53,8 +53,11 @@ func _on_player_moved(id, x, y, flip):
 		player.position.x = x
 		player.position.z = y
 		if flip:
-			player.weapon.scale = Vector3(-1,1,1)
+			player.weapon.scale.x = -1# = Vector3(-1,1,1)
+			player.weapon.position.x = -0.4 # Move weapon to left
 		else:
-			player.weapon.scale = Vector3(1,1,1)
+			player.weapon.scale.x = 1# = Vector3(1,1,1)
+			player.weapon.position.x = 0.4 # Move weapon to right
+
 		# Debug print (commented out - causes spam)
 		# print("[Main] Player ", id, " moved to (", x, ", ", y, ")")
