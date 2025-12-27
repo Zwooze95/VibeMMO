@@ -14,6 +14,7 @@ func _ready():
 	# Koppla till NetworkManager's signaler
 	NetworkManager.on_enemy_spawned.connect(_on_enemy_spawned)
 	NetworkManager.on_enemy_died.connect(_on_enemy_died)
+	NetworkManager.on_enemy_damaged.connect(_on_enemy_damaged)
 
 func _on_enemy_spawned(enemy_id: int, x: float, y: float, type: int):
 	print("[ServerEnemyManager] Spawnar enemy ID: ", enemy_id, " vid (", x, ", ", y, ") typ: ", type)
@@ -38,6 +39,30 @@ func _on_enemy_spawned(enemy_id: int, x: float, y: float, type: int):
 	# Koppla death-event om fienden har ett
 	if enemy.has_signal("enemy_died"):
 		enemy.enemy_died.connect(func(): _on_local_enemy_died(enemy_id))
+	
+	# Koppla damage-event om fienden har HealthComponent
+	if enemy.has_node("HealthComponent"):
+		var health_comp = enemy.get_node("HealthComponent")
+		if health_comp.has_signal("damaged"):
+			health_comp.damaged.connect(func(amount, _damager): _on_local_enemy_damaged(enemy_id, amount))
+
+func _on_local_enemy_damaged(enemy_id: int, damage: float):
+	# En fiende tog skada lokalt - meddela servern
+	print("[ServerEnemyManager] Local enemy ", enemy_id, " took ", damage, " damage - meddelar servern")
+	NetworkManager.send_enemy_damage(enemy_id, damage)
+
+func _on_enemy_damaged(enemy_id: int, damage: float):
+	# Servern säger att fienden tog skada - visa damage animation
+	print("[ServerEnemyManager] Server säger: Enemy ", enemy_id, " tog ", damage, " damage")
+	
+	if spawned_enemies.has(enemy_id):
+		var enemy = spawned_enemies[enemy_id]
+		
+		if is_instance_valid(enemy):
+			# Triggera damage animation (flash white är redan i Enemy.gd)
+			if enemy.has_method("_on_damaged"):
+				enemy._on_damaged(damage, null)
+
 
 func _on_local_enemy_died(enemy_id: int):
 	# En fiende dog lokalt (spelaren slog den)

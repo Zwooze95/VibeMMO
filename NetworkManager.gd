@@ -8,6 +8,7 @@ signal on_enemy_spawned(enemy_id, x, y, type)
 signal on_enemy_died(enemy_id)
 signal on_my_id_received(my_id) # Emitteras när vi får vårt ID från servern
 signal on_chat_received(player_id, message) # Chat från andra spelare
+signal on_enemy_damaged(enemyId, damage)
 
 var socket = WebSocketPeer.new()
 var http_request = HTTPRequest.new()
@@ -24,6 +25,7 @@ enum OP {
 	LEAVE,
 	ENEMY_SPAWN,
 	ENEMY_DEATH,
+	ENEMY_DAMAGE,
 	COLYSEUS_JOIN_ROOM = 10,
 	COLYSEUS_JOIN_ERROR = 11,
 	COLYSEUS_LEAVE_ROOM = 12
@@ -194,6 +196,15 @@ func _handle_binary_message(bytes: PackedByteArray):
 			var enemyId = buffer.get_u32()
 			print("[NetworkManager] ENEMY_DEATH: ID=%d" % enemyId)
 			on_enemy_died.emit(enemyId)
+		
+		OP.ENEMY_DAMAGE: # ENEMY_DAMAGE (9 bytes: 1 op + 4 id + 4 damage)
+			if bytes.size() < 9:
+				print("[NetworkManager] ERROR: ENEMY_DAMAGE-paket för kort! Behöver 9 bytes, fick ", bytes.size())
+				return
+			var enemyId = buffer.get_u32()
+			var damage = buffer.get_float()
+			print("[NetworkManager] ENEMY_DAMAGE: ID=%d, Damage=%.1f" % [enemyId, damage])
+			on_enemy_damaged.emit(enemyId, damage)
 			
 		OP.COLYSEUS_JOIN_ROOM:
 			print("[NetworkManager] Connected to Colyseus Room confirmed.")
@@ -228,7 +239,14 @@ func send_enemy_death(enemy_id: int):
 	buffer.put_u8(OP.ENEMY_DEATH) # 1 byte
 	buffer.put_u32(enemy_id) # 4 bytes
 	socket.send(buffer.data_array) # Totalt 5 bytes
-
+	
+func send_enemy_damage(enemy_id: int, damage: float):
+	var buffer = StreamPeerBuffer.new()
+	buffer.put_u8(OP.ENEMY_DAMAGE) # 1 byte
+	buffer.put_u32(enemy_id) # 4 bytes
+	buffer.put_float(damage)
+	socket.send(buffer.data_array) # Totalt 5 bytes
+	
 # Skicka chat message till servern (JSON för variabel längd text)
 func send_chat(message: String):
 	var msg = {"type": "chat", "message": message}

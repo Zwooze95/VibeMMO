@@ -7,6 +7,7 @@ const OP = {
     LEAVE: 2,
     ENEMY_SPAWN: 3,
     ENEMY_DEATH: 4,
+    ENEMY_DAMAGE: 5,
     COLYSEUS_JOIN_ROOM: 10, //COLYSEUS BUILT IN, NEVER USE THESE ONLY FOR TAKING INT
     COLYSEUS_JOIN_ERROR: 11, //COLYSEUS BUILT IN, NEVER USE THESE ONLY FOR TAKING INT
     COLYSEUS_LEAVE_ROOM: 12 //COLYSEUS BUILT IN, NEVER USE THESE ONLY FOR TAKING INT
@@ -117,6 +118,20 @@ export class MyRoom extends Room {
                     delete this.enemies[enemyId];
                     this.broadcastEnemyDeath(enemyId);
                 }
+                break;
+
+            case OP.ENEMY_DAMAGE:
+                if (buffer.length < 9) {
+                    console.log(`[MyRoom] ENEMY_DAMAGE packet too short: ${buffer.length} bytes`);
+                    return;
+                }
+                const damagedEnemyId = buffer.readUInt32LE(1);
+                const damage = buffer.readFloatLE(5);
+
+                console.log(`[MyRoom] Enemy ${damagedEnemyId} took ${damage.toFixed(1)} damage`);
+
+                // Broadcast damage till alla spelare
+                this.broadcastEnemyDamage(damagedEnemyId, damage);
                 break;
 
             default:
@@ -262,6 +277,15 @@ export class MyRoom extends Room {
         const buffer = Buffer.alloc(5);
         buffer.writeUInt8(OP.ENEMY_DEATH, 0);
         buffer.writeUInt32LE(enemyId, 1);
+        this.broadcastRaw(buffer);
+    }
+
+    broadcastEnemyDamage(enemyId: number, damage: number) {
+        // ENEMY_DAMAGE: 1 byte (OP) + 4 bytes (ID) + 4 bytes (damage) = 9
+        const buffer = Buffer.alloc(9);
+        buffer.writeUInt8(OP.ENEMY_DAMAGE, 0);
+        buffer.writeUInt32LE(enemyId, 1);
+        buffer.writeFloatLE(damage, 5);
         this.broadcastRaw(buffer);
     }
 
