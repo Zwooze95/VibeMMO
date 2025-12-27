@@ -22,7 +22,7 @@ func _on_player_joined(id, x, y):
 	var player_scene = load("res://Player.tscn")
 	var player = player_scene.instantiate()
 	player.name = str(id)
-	player.position = Vector3(x, 5, y) # Z är Y i 2D
+	player.position = Vector3(x, 1, y) # Z är Y i 2D
 	
 	players_node.add_child(player)
 	
